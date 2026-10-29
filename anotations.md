@@ -30,6 +30,12 @@ Termos cruciais são *Swap-out*, quando o processo vai da memória para uma regi
 
 
 
+Bitmap: ocupa tamanho fixo na memória, pois só depende do tamanho da memória e da unidade de alocação. (REVER)
+
+Listas Ligadas: mantêm-se uma lista ligada de segmentos de memória livres e alocados, como na imagem do slide 9 na página 13. (REVER)
+
+
+
 MEMÓRIA VIRTUAL:
 
 Permite que programas sejam executados mesmo que estejam parcialmente carregados na memória principal. É utilizado duas técnicas principais para isso: Paginação e Segmentação, que diz respeito a rigidez do tamanho dos blocos, se são fixos ou variáveis.
@@ -86,9 +92,19 @@ Desse modo, a utilização de caches de hardwares pode ser uma resolução para 
 
 
 
-Hardware: dessa maneira ocupa espaço real do computador que poderia ser usado para outras finalidades, mas é mais rápido. Se faltar página, o MMU gera uma interrupção de proteção de proteção e aciona o sistema operacional. Daí o processo é suspenso e seu descritor é inserido na fila dos processos esperando uma página virtual. Desse modo, uma moldura livre (na memória) deve ser alocada. 
+Hardware: dessa maneira ocupa espaço real do computador que poderia ser usado para outras finalidades, mas é mais rápido. Se faltar página, o MMU gera uma interrupção de proteção de proteção e aciona o sistema operacional. Daí o processo é suspenso e seu descritor é inserido na fila dos processos esperando uma página virtual. Desse modo, uma moldura livre (na memória) deve ser alocada. Copy on Write: quando um processo modifica a memória, o SO faz a cópia efetiva. Imagem boa no slide 9, página 59 (REVER).
 
 
+
+Software: as entradas da TLB no hardware são carregadas pelo SO. Em caso de *page fault* na TLB, a MMU faz uma interrupção ao SO. Aí o SO busca a página na tabela de páginas, destitui uma entrada da TLB, insere aí a nova página e reinicializa a instrução interrompida. As páginas contendo a própria tabela de páginas podem não estar na TLB, quando do processamento de uma TLB miss -> Causará novas TLB misses durante o processo.
+
+
+
+Tipos de ausências:
+
+&#x09;Soft miss: quando a página referenciada não está na TLB, mas está na memória física, daí só basta atualizar a TLB.
+
+&#x09;Hard miss: a página em si não está na memória física (e nem na TLB, naturalmente). Daí deve-se fazer um acesso ao disco para trazê-la à memória (e então à TLB). Muito lento.
 
 
 
