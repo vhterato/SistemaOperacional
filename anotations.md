@@ -108,3 +108,103 @@ Tipos de ausências:
 
 
 
+SLIDE 9b:
+
+
+
+Qual página devemos substituir?
+
+
+
+POLÍTICA DE SUBSTITUIÇÃO LOCAL: substitui aquela menos usada recentemente em um processo. Aloca a cada processo fração fixa da memória.
+
+
+
+Thrashing é quando um processo gasta mais tempo paginando do que executando.
+
+
+
+POLÍTICA DE SUBSTITUIÇÃO GLOBAL: as páginas de todos os processos são utilizadas na troca. Não aloca para cada processo uma fração fixa. Nessa política, processos com menor prioridade podem ter um número muito reduzido de páginas, o que causa falta de páginas e thrashing.
+
+
+
+ALOCAÇÃO FIXA OU ESTÁTICA: cada processo tem um número máximo de molduras definido quando o processo é criado: em um page fault, considera-se apenas molduras do próprio processo. O limite pode ser igual por processo ou seguir alguma distribuição. A maior vantagem é a simplicidade e a maior desvantagem são essas: se houver muitas molduras numa página, ocorrerá o desperdício de memória, o contrário é o thrashing. 
+
+
+
+ALOCAÇÃO VARIÁVEL OU DINÂMICA: número de molduras alocadas ao processo varia durante sua execução. Através dela, pode usar-se o algoritmo de page faut frequency, que me a frequência de faltas de página - se alta, aumenta o volume de molduras e, se baixa, reduz esse limite. A maior vantagem nesse esquema é que processos com elevada taxa de paginação podem ter seu limite de molduras ampliado e, aqueles com baixo, reduzidos. A desvantagem é o monitoramento constante no entanto.
+
+
+
+ESTRATÉGIAS DE PAGINAÇÃO:
+
+
+
+Paginação simples: todas as páginas virtuais do processo são carregadas para a memória principal. Desse modo, todas as páginas são sempre válidas.
+
+
+
+Paginação por demanda (Demand Paging): processos começam com nenhuma página na memória. Daí a CPU executa a primeira instrução, acarretando page fault e sendo trazido uma nova página. Esse, atualmente, é o método mais popular. Nesse estratégia, as páginsa são carregas na memória somente quando são necessárias.
+
+
+
+ALGORITMOS DE SUBSTITUIÇÃO DE PÁGINAS:
+
+
+
+Algoritmo ótimo: retira-se da memória a página que tem o maior número de instruções faltantes. Ele sempre adia ao máximo a próxima falta de página. É o ideal e impraticável.
+
+
+
+NRU - Not Recently Used: classifica as páginas com molduras atualmente na memória. Usa os bits de status (associados à cada página) da tabela de páginas -> R (eferenciada) e M (odificada). "?A referência garante a lida ou escrita, enquanto a modificação mostra que ela foi escrita. Armazenadas em cada entrada da tabela de página e seu valor é determinado pelo hardware.?"
+
+
+
+Processo iniciou e ambos R e M são 0 para todas suas páginas. Periodicamente, o bit R é limpo, diferenciando das páginas que não foram referenciadas recentemente, o que é possível fazer-se à cada interrupção de relógio. O bit M não é limpo, pois o S.O precisa saber se deve escrever a página no disco.
+
+
+
+Quando ocorre uma falta de página: aleatoriamente remove uma página, escolhendo dentre as classes mais baixas -> 00, 01, 10, 11. Dá preferência a quem não foi recentemente usada e não precisa volta ao disco.
+
+
+
+FIFO - First-in First-out: o SO mantém uma fila das páginas atualmente na memória. Quando ocorre um page fault, a página mais antiga é removida e a mais nova é inserida no final da fila. É simples, mas ineficiente, pois pode retirar uma página de uso constante.
+
+
+
+Segunda Chance: FIFO + bit R, assim evitando que se jogue fora páginas intensamente usadas. Nesse, inspeciona o bit R da página mais antiga. Se for 0, ela é velha (está no início da fila) e não foi usada recentemente -> é trocada.
+
+
+
+Algoritmo do relógio: é uma melhoria do algoritmo de segunda chance. Teremos uma lista circular com ponteiro (cabeça) que aponta à página mais antiga, como se fosse um relógio. Ao ocorrer um page fault, inspeciona-se a cabeça da lista e, se R = 0, substitui-se a página da cabeça pela nova página e avança uma posição do ponteiro. Todavia, caso R = 1, aquela página será salva, mas seu R mudará para 0 até que seja referenciada novamente e, daí, o ponteiro avança e continua até encontrar uma página com R = 0 para eliminar e substituir.
+
+
+
+LRU - Least Recently Used: a ideia consiste em substituir as páginas que estão em desuso pelo maior tempo (tempo desde a última referência). Aí deve-se manter uma lista com todos as páginas que estão na memória, sendo que as mais recentemente utilizadas irão ao início enquanto as menos estarão no final. Tal lista deve ser atualizada a cada referência de memória.
+
+
+
+Implementa-se tanto através de hardware quanto por software. Se por Hardware, a MMU deve suportar a implementação LRU. Contador em hardware (64 bits) é incrementando automaticamente após cada instrução. E , se a política for local, o contador inicia com o início do processo e, caso global, o contador inicia com início do sistema. Ainda em Hardware, após cada referência à memória, o valor atual de C (contador) é armazenado na entrada correspondente na tabela, ou seja, a tabela de páginas armazena o valor desse contador em cada entrada. Daí em diante em um page fault, o S.O examina todas as entradas na tabela até encontrar aquela com o menor C.
+
+
+
+NFU - Not Frequently Used: implementações em hardware da LRU são raríssimas e há que se simular em software. Daí se segue assim: para cada página existe um contador iniciado com zero, a cada interrupção do clock, o SO varre todas as páginas da memória, para cada página, adiciona o bit R ao contador correspondente e, daí, conta por quantos tiques do clock cada página foi referenciada. Daí, aquela com o mentor contador será substituída.
+
+
+
+Aging é crucial para lidar com pages que, apesar de possuírem contadores altos, não serão mais usadas, o que poderia resultar em desperdício de espaço. Trata-se de locomover o contador um bit à direita e daí o bit R é adicionado àquele mais à esquerda. Desse modo, páginas que não tenham sido referenciadas por mais tempo, terão mais zeros em seus bits mais significativos.
+
+
+
+Working Set (WS):
+
+
+
+
+
+
+
+
+
+
+
