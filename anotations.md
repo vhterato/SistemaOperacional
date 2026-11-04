@@ -128,7 +128,7 @@ POLÍTICA DE SUBSTITUIÇÃO GLOBAL: as páginas de todos os processos são utili
 
 
 
-ALOCAÇÃO FIXA OU ESTÁTICA: cada processo tem um número máximo de molduras definido quando o processo é criado: em um page fault, considera-se apenas molduras do próprio processo. O limite pode ser igual por processo ou seguir alguma distribuição. A maior vantagem é a simplicidade e a maior desvantagem são essas: se houver muitas molduras numa página, ocorrerá o desperdício de memória, o contrário é o thrashing. 
+ALOCAÇÃO FIXA OU ESTÁTICA: cada processo tem um número máximo de molduras definido quando o processo é criado: em um page fault, considera-se apenas molduras do próprio processo. O limite pode ser igual por processo ou seguir alguma distribuição. A maior vantagem é a simplicidade e a maior desvantagem são essas: se houver muitas molduras numa página, ocorrerá o desperdício de memória, o contrário é o thrashing.
 
 
 
@@ -196,15 +196,49 @@ Aging é crucial para lidar com pages que, apesar de possuírem contadores altos
 
 
 
-Working Set (WS):
+Working Set (WS): é um conjunto de páginas que um processo está usando atualmente. Logo, w(k, t) é o conjunto que consiste de todas as páginas usadas pelas k referências mais recentes à memória em um dado instante t. 
 
 
 
+Existe uma propriedade que é apresentada pela maioria dos processos: a Localidade de Referência, tratando-se de que, durante qualquer fase de execução, o processo só vai referenciar uma fração relativamente pequena de suas páginas.
 
 
 
+A meta é reduzir a falta de páginas e um processo é somente executado quando todas as páginas necessárias no tempo t estão carregadas na memória.
 
 
 
+O WS varia lentamente com o tempo e podemos estimar o número de páginas necessárias quando o programa é trazido do disco com seu ws de quando foi interrompido.  Daí, pré-paginação consiste em carregar essas páginas antes de rodar novamente o processo.
 
+
+
+Ao implementar, o SO mantem o registro de páginas que estão no ws e, daí, quando ocorre um page fault, encontra uma página fora do working set e a remove da memória. Utiliza-se o bit R e o tempo de relógio da última vez que a página foi referenciada.
+
+
+
+No WS, se o R = 1 no momento do page fault, significa que ele estava em uso e não é candidata à remoção. Fosse R = 0 e passaria a ser uma candidata e, se sua idade fosse maior que o intervalo t do working set, seria removida por não estar em ws. Daí a nova página entra no local. Todavia, se R = 0 é uma condição necessária, porém não suficiente. Se a idade da página for menor ou igual a t, aí a página é poupada. E caso não haja sequer uma que seja menor do que t, a mais velha é, assim, substituída. E, caso todas sejam iguais a R = 1, escolhe-se aleatoriamente alguma para remoção, de preferência alguma sem modificações.
+
+
+
+No WSclock, um anel começa vazio e é preenchido por páginas à medida que o processo as usa. Disso, um ponteiro vai avaliando as páginas nas mesmas diretrizes já escritas no WS, tendo algumas exceções: se R = 0 e M = 0, some, mas, se M = 1, agenda-se uma escrita ao disco, evitando troca de processo. Então, avança o ponteiro. Se, após o ponteiro dar volta completa, houver ao menos uma escrita no disco agendada, o ponteiro continua se movendo em busca de uma página limpa e, em algum momento, a escrita agendada será executada, marcando a página como limpa. Caso nenhuma página foi substituída após a volta do ponteiro e caso haja um page fault, substituiu qualquer página limpa ou, se nenhuma limpa exisitir, escreva a atual no disco.
+
+
+
+WS e WSClock são locais, enquanto os outros algorítimos podem ser locais ou globais.
+
+
+
+IMPLEMENTAÇÃO DE PAGINAÇÃO:
+
+
+
+Problema: endr de disco usados para armazenas páginas que não estão na memória não fazem parte da tabela de páginas. Onde então colocar as páginas no disco, quando retiradas da memória? Aliás, como saber onde estão? Como gerenciar isso?
+
+
+
+Uma simples solução é uma partição de swap, o que é efetuado no Unix e no Linux, não possuindo um sistema de arquivos normais Aí, ao iniciar o SO, a partição swap está vazia e ela é representada na memória como uma única entrada a conter sua localização e tamanho. À medida em que processos são iniciados, o SO reserva um pedaço da área de swap do tamanho do processo. É gerenciável como uma lsita de espaços disponíveis. A cada processo está associado o endereço de sua área de swap no disco.
+
+
+
+Antes de um processo iniciar, a área de swap iniciar-se-á primeiro. Existe a possibilidade A: assim que criado, ele é copiado para sua área de swap dentro do disco, sendo carregado para memória quando necessário.
 
